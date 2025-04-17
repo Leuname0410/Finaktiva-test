@@ -50,4 +50,18 @@ class EventLogController extends Controller
             return response()->json(['error' => 'No se pudo registrar el evento'], 500);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $log = EventLog::findOrFail($id);
+            $log->delete();
+
+            return response()->json(['mensaje' => 'Evento eliminado correctamente'], 200);
+        } catch (\Throwable $e) {
+            Log::error('Error al eliminar evento: ' . $e->getMessage());
+            return response()->json(['error' => 'No se pudo eliminar el evento'], 500);
+        }
+    }
+
 }
