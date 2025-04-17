@@ -116,9 +116,9 @@
             .then(response => response.json())
             .then(data => {
                 const tbody = document.querySelector('#tablaEventos tbody');
-                tbody.innerHTML = ''; // Limpia tabla antes de insertar
-                data.forEach(evento => insertarFila(evento)); // Usa tu función ya definida
-                document.getElementById('paginacion').innerHTML = ''; // Borra paginación
+                tbody.innerHTML = '';
+                data.forEach(evento => insertarFila(evento));
+                document.getElementById('paginacion').innerHTML = '';
             })
             .catch(error => {
                 console.error('Error al cargar eventos iniciales:', error);
@@ -131,7 +131,6 @@
         const fechaInicio = document.getElementById('filtroFechaInicio').value;
         const fechaFin = document.getElementById('filtroFechaFin').value;
 
-        // Si tipo es "todos", no lo incluimos en la URL
         let url = `/event-logs/api?fecha_inicio=${fechaInicio}&fecha_fin=${fechaFin}&page=${pagina}`;
         if (tipo !== 'todos') {
             url += `&tipo_evento=${tipo}`;
@@ -184,8 +183,8 @@
         .then(data => {
             $('#modalCrear').modal('hide');
             Swal.fire('Éxito', 'Evento creado correctamente', 'success');
-            cargarEventosIniciales(); // O usar cargarEventos(1) si estás filtrando
-            // Limpiar campos del formulario
+            cargarEventosIniciales();
+
             document.getElementById('formCrearEvento').reset();
             defalutDate();
             })
@@ -193,7 +192,15 @@
             let mensaje = 'Error al registrar el evento';
             if (err.status === 422) {
                 const errores = await err.json();
-                mensaje = Object.values(errores.errores).join('<br>');
+
+                if (errores.error === true && errores.errors) {
+                    mensaje = Object.values(errores.errors)
+                        .flat()
+                        .join('<br>');
+                }
+                else if (errores.errores) {
+                    mensaje = Object.values(errores.errores).join('<br>');
+                }
             }
             Swal.fire('Error', mensaje, 'error');
         });
@@ -265,8 +272,8 @@
     }
 
     function defalutDate(){
-        // Obtener la fecha y hora actual
-    const now = new Date();
+
+        const now = new Date();
 
         // Formatear la fecha y hora en el formato requerido para datetime-local (YYYY-MM-DDThh:mm)
         const year = now.getFullYear();
@@ -277,14 +284,11 @@
 
         const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
 
-        // Establecer el valor por defecto
         document.getElementById('fecha_evento').value = formattedDateTime;
     }
 
 </script>
 
-
-<!-- Bootstrap JS (opcional) -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 

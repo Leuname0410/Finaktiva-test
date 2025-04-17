@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEventLogRequest;
+
 use Illuminate\Http\Request;
 use App\Models\EventLog;
 use Illuminate\Support\Carbon;
@@ -11,17 +13,6 @@ use Illuminate\Support\Facades\Validator;
 
 class EventLogController extends Controller
 {
-    // public function index()
-    // {
-    //     try {
-    //         $logs = EventLog::orderBy('id', 'desc')->paginate(30);
-    //         return response()->json($logs);
-    //     } catch (\Throwable $e) {
-    //         Log::error('Error al consultar logs: ' . $e->getMessage());
-    //         return response()->json(['error' => 'Error al obtener los eventos'], 500);
-    //     }
-    // }
-
     public function indexDefault()
     {
         $logs = EventLog::orderBy('id', 'desc')->take(30)->get();
@@ -36,7 +27,6 @@ class EventLogController extends Controller
 
         $query = EventLog::query()->orderByDesc('id');
 
-        // Solo se filtra si no es "all" o "todos"
         if (!in_array(strtolower($tipoEvento), ['all'])) {
             $query->where('tipo_evento', $tipoEvento);
         }
@@ -61,21 +51,11 @@ class EventLogController extends Controller
     }
 
 
-
-    public function store(Request $request)
+    public function store(StoreEventLogRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'fecha_evento' => 'required|date',
-            'descripcion' => 'required|string',
-            'tipo_evento' => 'required|in:api,formulario',
-            'origen' => 'nullable|string|max:255',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errores' => $validator->errors()], 422);
-        }
 
         try {
+
             $log = EventLog::create([
                 'fecha_evento' => Carbon::parse($request->fecha_evento),
                 'descripcion' => $request->descripcion,
@@ -93,6 +73,15 @@ class EventLogController extends Controller
     public function destroy($id)
     {
         try {
+
+            $validator = Validator::make(['id' => $id], [
+                'id' => 'required|numeric|integer|min:1|max:18446744073709551615'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['error' => 'ID de evento inválido'], 400);
+            }
+
             $log = EventLog::findOrFail($id);
             $log->delete();
 
