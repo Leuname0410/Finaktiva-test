@@ -11,16 +11,55 @@ use Illuminate\Support\Facades\Validator;
 
 class EventLogController extends Controller
 {
-    public function index()
+    // public function index()
+    // {
+    //     try {
+    //         $logs = EventLog::orderBy('id', 'desc')->paginate(30);
+    //         return response()->json($logs);
+    //     } catch (\Throwable $e) {
+    //         Log::error('Error al consultar logs: ' . $e->getMessage());
+    //         return response()->json(['error' => 'Error al obtener los eventos'], 500);
+    //     }
+    // }
+
+    public function indexDefault()
     {
-        try {
-            $logs = EventLog::orderBy('id', 'desc')->paginate(30);
-            return response()->json($logs);
-        } catch (\Throwable $e) {
-            Log::error('Error al consultar logs: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al obtener los eventos'], 500);
-        }
+        $logs = EventLog::orderBy('id', 'desc')->take(30)->get();
+        return response()->json($logs);
     }
+
+    public function index(Request $request)
+    {
+        $tipoEvento = $request->input('tipo_evento', 'api');
+        $fechaInicio = $request->input('fecha_inicio', now()->toDateString());
+        $fechaFin = $request->input('fecha_fin', now()->toDateString());
+
+        $query = EventLog::query()->orderByDesc('id');
+
+        // Solo se filtra si no es "all" o "todos"
+        if (!in_array(strtolower($tipoEvento), ['all'])) {
+            $query->where('tipo_evento', $tipoEvento);
+        }
+
+        if ($fechaInicio) {
+            $query->whereDate('fecha_evento', '>=', $fechaInicio);
+        }
+
+        if ($fechaFin) {
+            $query->whereDate('fecha_evento', '<=', $fechaFin);
+        }
+
+        $logs = $query->paginate(30);
+
+        return response()->json([
+            'total' => $logs->total(),
+            'per_page' => $logs->perPage(),
+            'current_page' => $logs->currentPage(),
+            'last_page' => $logs->lastPage(),
+            'data' => $logs->items()
+        ]);
+    }
+
 
 
     public function store(Request $request)

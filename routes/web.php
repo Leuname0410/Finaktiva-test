@@ -21,7 +21,8 @@ Route::get('/', function () {
 
 
 Route::prefix('event-logs')->group(function () {
-    Route::get('/', [EventLogController::class, 'index']);
+    Route::get('/api/default', [EventLogController::class, 'indexDefault']);
+    Route::get('/api', [EventLogController::class, 'index']);
     Route::post('/storeEvent', [EventLogController::class, 'store']);
     Route::delete('/delete/{id}', [EventLogController::class, 'destroy']);
 });

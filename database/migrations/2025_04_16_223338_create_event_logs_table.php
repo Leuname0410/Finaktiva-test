@@ -16,6 +16,9 @@ class CreateEventLogsTable extends Migration
             $table->string('origen')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('tipo_evento');
+            $table->index('fecha_evento');
         });
     }
 
